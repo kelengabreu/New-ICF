@@ -168,8 +168,16 @@ Tom: profissional, direto, empático. Começa mostrando a realidade (dor), termi
         body: JSON.stringify({ messages:[{role:"user",content:prompt}] }),
       });
       const data = await res.json();
-      const text = (data.content||[]).map(b=>b.text||"").join("");
-      setReport(text);
+      let text = "";
+if (data.content && Array.isArray(data.content)) {
+  text = data.content.map(b => b.text || "").join("");
+} else if (data.error) {
+  text = "Erro: " + (data.error.message || JSON.stringify(data.error));
+} else {
+  text = JSON.stringify(data);
+}
+if (!text) text = "Relatório não disponível. Tente novamente.";
+setReport(text);
 
       const configured = EMAILJS_SERVICE_ID !== "SEU_SERVICE_ID";
       if (configured) {
