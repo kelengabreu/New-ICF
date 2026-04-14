@@ -13,8 +13,6 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     input { font-family: inherit; }
     button { font-family: inherit; }
-
-    /* ── scrollbar ── */
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: #1E293B; }
     ::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
@@ -22,80 +20,17 @@
 </head>
 <body>
 <div id="root"></div>
-
 <script type="text/babel">
-
-// ============================================================
-// 🔧 CONFIGURE SUAS CREDENCIAIS DO EMAILJS AQUI
-// 1. Crie conta em https://www.emailjs.com
-// 2. Email Services → conecte Gmail/Outlook → copie Service ID
-// 3. Email Templates → crie template → copie Template ID
-// 4. Account → General → copie Public Key
-// ============================================================
 const EMAILJS_SERVICE_ID  = "service_9mjn1zq";
 const EMAILJS_TEMPLATE_ID = "template_psebmi3";
 const EMAILJS_PUBLIC_KEY  = "J315GEKNeU_T_-cTe";
-
-// Template EmailJS — variáveis a usar:
-// {{to_email}}, {{to_name}}, {{empresa}}, {{score}}, {{classificacao}}, {{relatorio}}
-
 const { useState } = React;
-
 const PILLARS = [
-  {
-    id: "mindset",
-    title: "Mindset do Lucro",
-    subtitle: "Avalia se o empresário tem mentalidade orientada a lucro",
-    icon: "🧠", color: "#F59E0B",
-    criteria: [
-      "Acompanho o lucro da empresa regularmente",
-      "Tomo decisões baseadas em resultado financeiro",
-      "Entendo a diferença entre faturamento e lucro",
-      "Tenho metas financeiras claras definidas",
-      "Entendo que minha empresa é minha galinha dos ovos de ouro",
-    ],
-  },
-  {
-    id: "confiabilidade",
-    title: "Confiabilidade dos Dados",
-    subtitle: "O pilar mais crítico — base de tudo",
-    icon: "🔐", color: "#EF4444",
-    criteria: [
-      "Faço conciliação bancária corretamente",
-      "Meus dados financeiros estão sempre atualizados",
-      "Tenho um plano de contas bem estruturado",
-      "Meus sistemas financeiros estão integrados",
-      "Não há retrabalho manual nos meus processos financeiros",
-    ],
-  },
-  {
-    id: "clareza",
-    title: "Clareza Financeira",
-    subtitle: "Avalia se os dados se tornam visão estratégica",
-    icon: "📊", color: "#3B82F6",
-    criteria: [
-      "Tenho um DRE gerencial confiável",
-      "Tenho um DFC (fluxo de caixa) gerencial confiável",
-      "Conheço a margem de cada produto ou serviço",
-      "Controlo meu fluxo de caixa de forma eficiente",
-      "Acompanho indicadores financeiros regularmente",
-    ],
-  },
-  {
-    id: "seguranca",
-    title: "Segurança nas Decisões",
-    subtitle: "Avalia se a empresa decide bem com base em números",
-    icon: "🎯", color: "#10B981",
-    criteria: [
-      "Minhas decisões são baseadas em dados financeiros",
-      "Tenho planejamento financeiro estruturado",
-      "Consigo controlar o crescimento da empresa",
-      "Sou capaz de prever problemas financeiros com antecedência",
-      "Tenho organograma com OKRs financeiros definidos",
-    ],
-  },
+  { id:"mindset", title:"Mindset do Lucro", subtitle:"Avalia se o empresário tem mentalidade orientada a lucro", icon:"🧠", color:"#F59E0B", criteria:["Acompanho o lucro da empresa regularmente","Tomo decisões baseadas em resultado financeiro","Entendo a diferença entre faturamento e lucro","Tenho metas financeiras claras definidas","Entendo que minha empresa é minha galinha dos ovos de ouro"] },
+  { id:"confiabilidade", title:"Confiabilidade dos Dados", subtitle:"O pilar mais crítico — base de tudo", icon:"🔐", color:"#EF4444", criteria:["Faço conciliação bancária corretamente","Meus dados financeiros estão sempre atualizados","Tenho um plano de contas bem estruturado","Meus sistemas financeiros estão integrados","Não há retrabalho manual nos meus processos financeiros"] },
+  { id:"clareza", title:"Clareza Financeira", subtitle:"Avalia se os dados se tornam visão estratégica", icon:"📊", color:"#3B82F6", criteria:["Tenho um DRE gerencial confiável","Tenho um DFC (fluxo de caixa) gerencial confiável","Conheço a margem de cada produto ou serviço","Controlo meu fluxo de caixa de forma eficiente","Acompanho indicadores financeiros regularmente"] },
+  { id:"seguranca", title:"Segurança nas Decisões", subtitle:"Avalia se a empresa decide bem com base em números", icon:"🎯", color:"#10B981", criteria:["Minhas decisões são baseadas em dados financeiros","Tenho planejamento financeiro estruturado","Consigo controlar o crescimento da empresa","Sou capaz de prever problemas financeiros com antecedência","Tenho organograma com OKRs financeiros definidos"] },
 ];
-
 const CLASSIFICATIONS = [
   { min:0,  max:25,  label:"Cegueira Crítica",   color:"#EF4444", bg:"#FEE2E2", emoji:"🔴" },
   { min:26, max:50,  label:"Cegueira Alta",       color:"#F97316", bg:"#FFEDD5", emoji:"🟠" },
@@ -103,350 +38,37 @@ const CLASSIFICATIONS = [
   { min:76, max:90,  label:"Baixa Cegueira",      color:"#3B82F6", bg:"#DBEAFE", emoji:"🔵" },
   { min:91, max:100, label:"Clareza Financeira",  color:"#10B981", bg:"#D1FAE5", emoji:"🟢" },
 ];
-
 const getCls = (s) => CLASSIFICATIONS.find(c => s >= c.min && s <= c.max) || CLASSIFICATIONS[0];
 const emptyA = () => ({ mindset:[null,null,null,null,null], confiabilidade:[null,null,null,null,null], clareza:[null,null,null,null,null], seguranca:[null,null,null,null,null] });
-
 function App() {
-  const [step,      setStep]      = useState("intro");
-  const [pi,        setPi]        = useState(0);
-  const [answers,   setAnswers]   = useState(emptyA());
-  const [email,     setEmail]     = useState("");
-  const [nome,      setNome]      = useState("");
-  const [empresa,   setEmpresa]   = useState("");
-  const [report,    setReport]    = useState("");
-  const [emailSent, setEmailSent] = useState(false);
-  const [error,     setError]     = useState("");
-
-  const score  = PILLARS.reduce((s,p) => s + answers[p.id].filter(Boolean).length * 5, 0);
-  const cls    = getCls(score);
-  const pScore = (id) => answers[id].filter(Boolean).length * 5;
-
-  function toggle(id, i, val) {
-    setAnswers(prev => { const u=[...prev[id]]; u[i]=val; return {...prev,[id]:u}; });
-  }
-
-  async function generate() {
-    setStep("loading"); setError("");
-    const pillarDetails = PILLARS.map(p => {
-      const lines = answers[p.id].map((a,i) => `${a?"✔":"✘"} ${p.criteria[i]}`).join("\n");
-      return `${p.title} (${pScore(p.id)}/25):\n${lines}`;
-    }).join("\n\n");
-
-    const prompt = `Você é um especialista em gestão financeira empresarial. Um empresário completou o diagnóstico ICF (Índice de Cegueira Financeira).
-
-Dados:
-- Nome: ${nome||"Empresário"}
-- Empresa: ${empresa||"Não informada"}
-- Pontuação: ${score}/100
-- Classificação: ${cls.label}
-
-Resultado por pilar:
-${pillarDetails}
-
-Crie um relatório de diagnóstico financeiro personalizado em português do Brasil com:
-1. Saudação personalizada e frase de impacto sobre a cegueira financeira identificada
-2. Resumo executivo honesto e direto sobre o resultado (2-3 parágrafos) — não suavize a dor onde ela existe
-3. Análise de cada pilar: o que está custando caro para o negócio hoje e o que já funciona bem
-4. Top 3 prioridades de ação imediata para começar a enxergar com clareza (específicas e práticas)
-5. Recomendação de próximo passo — indique UM produto específico da Kélen Abreu com base na pontuação:
-
-- 0 a 25 (Cegueira Crítica): recomendar o iuli (iuli.com.br) — ERP financeiro que vai estruturar a base de dados, conciliação bancária automática, DRE, DFC e dashboards. É a fundação que a empresa precisa agora.
-- 26 a 50 (Cegueira Alta): recomendar iuli + serviço de Financeiro Operacional da Lucros Reais (lucrosreais.com.br) — combina a ferramenta com o suporte humano para reorganizar tudo rapidamente.
-- 51 a 75 (Cegueira Moderada): recomendar a Controladoria Estratégica da Lucros Reais (lucrosreais.com.br) — a estrutura já existe, falta visão e integração estratégica.
-- 76 a 90 (Baixa Cegueira): recomendar o Conselho Empresarial da Lucros Reais (lucrosreais.com.br) — reuniões mensais para orientação estratégica e tomada de decisão com base nos números.
-- 91 a 100 (Clareza Financeira): recomendar a Formação Engenheiros do Lucro (drakelenabreu.com.br) — hora de replicar essa cultura financeira para toda a equipe.
-
-6. Conclusão inspiradora: a clareza financeira é possível e começa agora — termine com visão de futuro.
-
-Tom: profissional, direto, empático. Começa mostrando a realidade (dor), termina mostrando o caminho (desejo). A recomendação de produto deve soar como uma indicação genuína de especialista, não como propaganda. Nunca genérico — use os dados reais do diagnóstico.`;
-
-    try {
-      const res  = await fetch("/api/gerar-relatorio", {
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ messages:[{role:"user",content:prompt}] }),
-      });
-      const data = await res.json();
-      let text = "";
-if (data.content && Array.isArray(data.content)) {
-  text = data.content.map(b => b.text || "").join("");
-} else if (data.error) {
-  text = "Erro: " + (data.error.message || JSON.stringify(data.error));
-} else {
-  text = JSON.stringify(data);
-}
-if (!text) text = "Relatório não disponível. Tente novamente.";
-setReport(text);
-
-      const configured = EMAILJS_SERVICE_ID !== "SEU_SERVICE_ID";
-      if (configured) {
-        try {
-          const er = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
-            method:"POST",
-            headers:{"Content-Type":"application/json"},
-            body: JSON.stringify({
-              service_id: EMAILJS_SERVICE_ID,
-              template_id: EMAILJS_TEMPLATE_ID,
-              user_id: EMAILJS_PUBLIC_KEY,
-              template_params: { to_email:email, to_name:nome||"Empresário", empresa:empresa||"Não informada", score:String(score), classificacao:`${cls.emoji} ${cls.label} (${score}/100)`, relatorio:text },
-            }),
-          });
-          setEmailSent(er.ok);
-        } catch { setEmailSent(false); }
-      }
+  const [step,setStep]=useState("intro");const [pi,setPi]=useState(0);const [answers,setAnswers]=useState(emptyA());const [email,setEmail]=useState("");const [nome,setNome]=useState("");const [empresa,setEmpresa]=useState("");const [report,setReport]=useState("");const [emailSent,setEmailSent]=useState(false);const [error,setError]=useState("");
+  const score=PILLARS.reduce((s,p)=>s+answers[p.id].filter(Boolean).length*5,0);const cls=getCls(score);const pScore=(id)=>answers[id].filter(Boolean).length*5;
+  function toggle(id,i,val){setAnswers(prev=>{const u=[...prev[id]];u[i]=val;return{...prev,[id]:u};});}
+  async function generate(){
+    setStep("loading");setError("");
+    const pillarDetails=PILLARS.map(p=>{const lines=answers[p.id].map((a,i)=>`${a?"✔":"✘"} ${p.criteria[i]}`).join("\n");return`${p.title} (${pScore(p.id)}/25):\n${lines}`;}).join("\n\n");
+    const prompt=`Você é um especialista em gestão financeira empresarial. Um empresário completou o diagnóstico ICF (Índice de Cegueira Financeira).\n\nDados:\n- Nome: ${nome||"Empresário"}\n- Empresa: ${empresa||"Não informada"}\n- Pontuação: ${score}/100\n- Classificação: ${cls.label}\n\nResultado por pilar:\n${pillarDetails}\n\nCrie um relatório de diagnóstico financeiro personalizado em português do Brasil com:\n1. Saudação personalizada e frase de impacto sobre a cegueira financeira identificada\n2. Resumo executivo honesto e direto sobre o resultado (2-3 parágrafos)\n3. Análise de cada pilar: o que está custando caro para o negócio hoje e o que já funciona bem\n4. Top 3 prioridades de ação imediata\n5. Recomendação: 0-25 recomendar iuli.com.br, 26-50 iuli + lucrosreais.com.br, 51-75 Controladoria lucrosreais.com.br, 76-90 Conselho lucrosreais.com.br, 91-100 Formação drakelenabreu.com.br\n6. Conclusão inspiradora\n\nNÃO use markdown, asteriscos, hashtags ou formatação especial. Escreva em texto simples com parágrafos. Tom: profissional, direto, empático.`;
+    try{
+      const res=await fetch("/api/gerar-relatorio",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({messages:[{role:"user",content:prompt}],lead:{nome:nome||"",email:email,empresa:empresa||"",score:score,classificacao:`${cls.emoji} ${cls.label}`}})});
+      const data=await res.json();
+      let text="";
+      if(data.content&&Array.isArray(data.content)){text=data.content.map(b=>b.text||"").join("");}
+      else if(data.error){text="Erro: "+(data.error.message||JSON.stringify(data.error));}
+      else{text=JSON.stringify(data);}
+      if(!text)text="Relatório não disponível. Tente novamente.";
+      setReport(text);
+      try{const er=await fetch("https://api.emailjs.com/api/v1.0/email/send",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({service_id:EMAILJS_SERVICE_ID,template_id:EMAILJS_TEMPLATE_ID,user_id:EMAILJS_PUBLIC_KEY,template_params:{to_email:email,to_name:nome||"Empresário",empresa:empresa||"Não informada",score:String(score),classificacao:`${cls.emoji} ${cls.label} (${score}/100)`,relatorio:text}})});setEmailSent(er.ok);}catch{setEmailSent(false);}
       setStep("report");
-    } catch {
-      setError("Erro ao gerar relatório. Tente novamente.");
-      setStep("email");
-    }
+    }catch{setError("Erro ao gerar relatório. Tente novamente.");setStep("email");}
   }
-
-  function restart() {
-    setStep("intro"); setPi(0); setAnswers(emptyA());
-    setReport(""); setEmail(""); setNome(""); setEmpresa(""); setEmailSent(false); setError("");
-  }
-
-  // ── INTRO ─────────────────────────────────────────────────
-  if (step === "intro") return (
-    <div style={S.page}>
-      <div style={S.card}>
-        <div style={S.badge}>DIAGNÓSTICO GRATUITO</div>
-        <div style={S.icfBig}>ICF</div>
-        <h1 style={S.heroTitle}>Índice de Cegueira<br/>Financeira</h1>
-        <p style={S.heroSub}>Sua empresa está financeiramente cega sem saber? Descubra em 5 minutos o quanto a cegueira financeira está custando para o seu negócio — e receba um plano para mudar isso.</p>
-        <div style={S.pillarsRow}>
-          {PILLARS.map(p => (
-            <div key={p.id} style={{...S.pillarBadge, borderColor:p.color}}>
-              <span>{p.icon}</span>
-              <span style={{fontSize:10,color:"#9CA3AF",textAlign:"center"}}>{p.title}</span>
-            </div>
-          ))}
-        </div>
-        <button style={S.btnPrimary} onClick={()=>setStep("pilar")}>Iniciar Diagnóstico →</button>
-      </div>
-    </div>
-  );
-
-  // ── PILARES ───────────────────────────────────────────────
-  if (step === "pilar") {
-    const p   = PILLARS[pi];
-    const cur = answers[p.id];
-    const done = cur.every(a => a !== null);
-    return (
-      <div style={S.page}>
-        <div style={S.card}>
-          <div style={S.progressBar}>
-            {PILLARS.map((pp,i) => (
-              <div key={pp.id} style={{...S.pSeg, background: i<pi ? pp.color : i===pi ? pp.color+"88" : "#374151"}} />
-            ))}
-          </div>
-          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
-            <span style={{fontSize:28}}>{p.icon}</span>
-            <div>
-              <div style={{fontSize:12,color:"#6B7280",textTransform:"uppercase",letterSpacing:1}}>Pilar {pi+1} de 4</div>
-              <h2 style={{...S.pillarTitle, color:p.color}}>{p.title}</h2>
-            </div>
-          </div>
-          <p style={S.pillarSub}>{p.subtitle}</p>
-          <div style={S.criteriaList}>
-            {p.criteria.map((c,i) => (
-              <div key={i} style={S.criterionRow}>
-                <p style={S.criterionText}>{c}</p>
-                <div style={S.toggleGroup}>
-                  {[true,false].map(opt => (
-                    <button key={String(opt)}
-                      style={{...S.toggleBtn, ...(cur[i]===opt ? (opt?S.yes:S.no) : {})}}
-                      onClick={()=>toggle(p.id,i,opt)}>
-                      {opt?"Sim":"Não"}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-          {done && (
-            <div style={{...S.pillarResult, borderColor:p.color}}>
-              <span style={{color:p.color,fontWeight:700,fontSize:22}}>{pScore(p.id)}/25</span>
-              <span style={{color:"#9CA3AF",fontSize:13}}>pontos neste pilar</span>
-            </div>
-          )}
-          <div style={S.navRow}>
-            {pi>0 && <button style={S.btnSecondary} onClick={()=>setPi(i=>i-1)}>← Voltar</button>}
-            <button style={{...S.btnPrimary, opacity:done?1:0.4, cursor:done?"pointer":"not-allowed", marginLeft:"auto"}}
-              disabled={!done} onClick={()=> pi<3 ? setPi(i=>i+1) : setStep("email")}>
-              {pi<3?"Próximo Pilar →":"Ver Resultado →"}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ── EMAIL FORM ────────────────────────────────────────────
-  if (step === "email") return (
-    <div style={S.page}>
-      <div style={S.card}>
-        <div style={{fontSize:40,marginBottom:8}}>📩</div>
-        <h2 style={S.sectionTitle}>Quase lá!</h2>
-        <p style={{color:"#9CA3AF",fontSize:14,marginBottom:24,textAlign:"center"}}>
-          Preencha seus dados e receba seu diagnóstico completo — com o mapa exato para sair da cegueira financeira.
-        </p>
-        {[
-          {label:"Seu nome",         placeholder:"Ex: João Silva",        value:nome,    set:setNome,    type:"text"},
-          {label:"Nome da empresa",  placeholder:"Ex: Silva & Cia Ltda",  value:empresa, set:setEmpresa, type:"text"},
-          {label:"Seu e-mail *",     placeholder:"seuemail@empresa.com",  value:email,   set:setEmail,   type:"email"},
-        ].map(({label,placeholder,value,set,type}) => (
-          <div key={label} style={S.formGroup}>
-            <label style={S.label}>{label}</label>
-            <input style={S.input} type={type} placeholder={placeholder} value={value} onChange={e=>set(e.target.value)} />
-          </div>
-        ))}
-        {error && <p style={{color:"#EF4444",fontSize:13,marginBottom:12}}>{error}</p>}
-        <button style={{...S.btnPrimary, opacity:email?1:0.4, cursor:email?"pointer":"not-allowed"}}
-          disabled={!email} onClick={generate}>
-          Gerar e Enviar Relatório →
-        </button>
-      </div>
-    </div>
-  );
-
-  // ── LOADING ───────────────────────────────────────────────
-  if (step === "loading") return (
-    <div style={S.page}>
-      <div style={S.card}>
-        <div style={S.spinner}/>
-        <h2 style={{...S.sectionTitle,marginTop:20}}>Analisando seu diagnóstico...</h2>
-        <p style={{color:"#6B7280",fontSize:14,textAlign:"center"}}>Preparando seu caminho para a clareza financeira 📊</p>
-      </div>
-    </div>
-  );
-
-  // ── REPORT ────────────────────────────────────────────────
-  if (step === "report") return (
-    <div style={S.page}>
-      <div style={{...S.card, maxWidth:680}}>
-        <div style={{...S.scoreHeader, background:cls.bg, borderColor:cls.color}}>
-          <div style={{fontSize:13,color:cls.color,fontWeight:700,textTransform:"uppercase",letterSpacing:1}}>{cls.emoji} {cls.label}</div>
-          <div style={{fontSize:60,fontWeight:900,color:cls.color,lineHeight:1}}>{score}</div>
-          <div style={{fontSize:13,color:"#6B7280"}}>de 100 pontos</div>
-        </div>
-
-        <div style={{...S.emailInfo, borderColor:emailSent?"#10B981":"#F59E0B", background:emailSent?"#064E3B22":"#78350F22"}}>
-          <span style={{fontSize:22}}>{emailSent?"✅":"⚠️"}</span>
-          <div>
-            <div style={{fontSize:13,color:"#D1D5DB",fontWeight:600}}>
-              {emailSent?"Relatório enviado com sucesso!":"Configure o EmailJS para envio automático"}
-            </div>
-            <div style={{fontSize:12,color:"#6B7280"}}>
-              {emailSent?`Enviado para: ${email}`:"Use o botão abaixo para enviar manualmente"}
-            </div>
-          </div>
-        </div>
-
-        <div style={S.pillarBreakdown}>
-          {PILLARS.map(p => {
-            const pts = pScore(p.id);
-            return (
-              <div key={p.id} style={S.pillarBar}>
-                <div style={S.pillarBarHeader}>
-                  <span style={{fontSize:13,color:"#D1D5DB"}}>{p.icon} {p.title}</span>
-                  <span style={{fontSize:13,fontWeight:700,color:p.color}}>{pts}/25</span>
-                </div>
-                <div style={S.barTrack}>
-                  <div style={{...S.barFill, width:`${(pts/25)*100}%`, background:p.color}}/>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        <div style={S.reportBox}>
-          <h3 style={{color:"#F3F4F6",marginBottom:12,fontSize:16}}>📄 Seu Relatório Personalizado</h3>
-          <div style={S.reportText}>
-            {report.split("\n").map((line,i) => <p key={i} style={{margin:"4px 0",lineHeight:1.7}}>{line}</p>)}
-          </div>
-        </div>
-
-        {/* CTA Card — produto recomendado */}
-        {(() => {
-          const cta = score <= 25
-            ? { label:"Próximo passo recomendado", title:"iuli — ERP Financeiro", desc:"Estruture a base da sua empresa com conciliação automática, DRE, DFC e dashboards integrados.", url:"https://iuli.com.br", btn:"Conhecer o iuli →", color:"#F59E0B" }
-            : score <= 50
-            ? { label:"Próximo passo recomendado", title:"iuli + Financeiro Operacional", desc:"Combine a ferramenta certa com suporte humano especializado para reorganizar tudo rapidamente.", url:"https://lucrosreais.com.br", btn:"Conhecer a Lucros Reais →", color:"#F97316" }
-            : score <= 75
-            ? { label:"Próximo passo recomendado", title:"Controladoria Estratégica", desc:"Você tem estrutura — falta integração e visão estratégica. A Lucros Reais é o seu próximo nível.", url:"https://lucrosreais.com.br", btn:"Conhecer a Lucros Reais →", color:"#EAB308" }
-            : score <= 90
-            ? { label:"Próximo passo recomendado", title:"Conselho Empresarial", desc:"Reuniões mensais para orientar decisões estratégicas com base nos seus números. Você está pronto.", url:"https://lucrosreais.com.br", btn:"Conhecer o Conselho →", color:"#3B82F6" }
-            : { label:"Próximo passo recomendado", title:"Formação Engenheiros do Lucro", desc:"Replique essa cultura financeira para toda a sua equipe. Você virou referência — agora forme outros.", url:"https://drakelenabreu.com.br", btn:"Conhecer a Formação →", color:"#10B981" };
-          return (
-            <div style={{width:"100%", border:`1px solid ${cta.color}44`, borderRadius:14, padding:"20px", marginBottom:16, background:`${cta.color}11`}}>
-              <div style={{fontSize:11, color:cta.color, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", marginBottom:8, fontFamily:"monospace"}}>{cta.label}</div>
-              <div style={{fontSize:17, fontWeight:800, color:"#F3F4F6", marginBottom:6}}>{cta.title}</div>
-              <div style={{fontSize:13, color:"#9CA3AF", lineHeight:1.6, marginBottom:14}}>{cta.desc}</div>
-              <button style={{...S.btnPrimary, background:`linear-gradient(135deg, ${cta.color}, ${cta.color}bb)`, width:"auto", padding:"11px 22px", fontSize:14}}
-                onClick={()=>window.open(cta.url,"_blank")}>
-                {cta.btn}
-              </button>
-            </div>
-          );
-        })()}
-
-        <div style={S.navRow}>
-          <button style={S.btnSecondary} onClick={restart}>Refazer Diagnóstico</button>
-          {!emailSent && (
-            <button style={S.btnPrimary} onClick={()=>{
-              const sub  = encodeURIComponent("Seu Relatório ICF – Índice de Cegueira Financeira");
-              const body = encodeURIComponent(`Pontuação: ${score}/100 — ${cls.label}\n\n${report}`);
-              window.open(`mailto:${email}?subject=${sub}&body=${body}`,"_blank");
-            }}>📧 Enviar por E-mail</button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+  function restart(){setStep("intro");setPi(0);setAnswers(emptyA());setReport("");setEmail("");setNome("");setEmpresa("");setEmailSent(false);setError("");}
+  if(step==="intro")return(<div style={S.page}><div style={S.card}><div style={S.badge}>DIAGNÓSTICO GRATUITO</div><div style={S.icfBig}>ICF</div><h1 style={S.heroTitle}>Índice de Cegueira<br/>Financeira</h1><p style={S.heroSub}>Sua empresa está financeiramente cega sem saber? Descubra em 5 minutos o quanto a cegueira financeira está custando para o seu negócio — e receba um plano para mudar isso.</p><div style={S.pillarsRow}>{PILLARS.map(p=>(<div key={p.id} style={{...S.pillarBadge,borderColor:p.color}}><span>{p.icon}</span><span style={{fontSize:10,color:"#9CA3AF",textAlign:"center"}}>{p.title}</span></div>))}</div><button style={S.btnPrimary} onClick={()=>setStep("pilar")}>Iniciar Diagnóstico →</button></div></div>);
+  if(step==="pilar"){const p=PILLARS[pi];const cur=answers[p.id];const done=cur.every(a=>a!==null);return(<div style={S.page}><div style={S.card}><div style={S.progressBar}>{PILLARS.map((pp,i)=>(<div key={pp.id} style={{...S.pSeg,background:i<pi?pp.color:i===pi?pp.color+"88":"#374151"}}/>))}</div><div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}><span style={{fontSize:28}}>{p.icon}</span><div><div style={{fontSize:12,color:"#6B7280",textTransform:"uppercase",letterSpacing:1}}>Pilar {pi+1} de 4</div><h2 style={{...S.pillarTitle,color:p.color}}>{p.title}</h2></div></div><p style={S.pillarSub}>{p.subtitle}</p><div style={S.criteriaList}>{p.criteria.map((c,i)=>(<div key={i} style={S.criterionRow}><p style={S.criterionText}>{c}</p><div style={S.toggleGroup}>{[true,false].map(opt=>(<button key={String(opt)} style={{...S.toggleBtn,...(cur[i]===opt?(opt?S.yes:S.no):{})}} onClick={()=>toggle(p.id,i,opt)}>{opt?"Sim":"Não"}</button>))}</div></div>))}</div>{done&&(<div style={{...S.pillarResult,borderColor:p.color}}><span style={{color:p.color,fontWeight:700,fontSize:22}}>{pScore(p.id)}/25</span><span style={{color:"#9CA3AF",fontSize:13}}>pontos neste pilar</span></div>)}<div style={S.navRow}>{pi>0&&<button style={S.btnSecondary} onClick={()=>setPi(i=>i-1)}>← Voltar</button>}<button style={{...S.btnPrimary,opacity:done?1:0.4,cursor:done?"pointer":"not-allowed",marginLeft:"auto"}} disabled={!done} onClick={()=>pi<3?setPi(i=>i+1):setStep("email")}>{pi<3?"Próximo Pilar →":"Ver Resultado →"}</button></div></div></div>);}
+  if(step==="email")return(<div style={S.page}><div style={S.card}><div style={{fontSize:40,marginBottom:8}}>📩</div><h2 style={S.sectionTitle}>Quase lá!</h2><p style={{color:"#9CA3AF",fontSize:14,marginBottom:24,textAlign:"center"}}>Preencha seus dados e receba seu diagnóstico completo — com o mapa exato para sair da cegueira financeira.</p>{[{label:"Seu nome",placeholder:"Ex: João Silva",value:nome,set:setNome,type:"text"},{label:"Nome da empresa",placeholder:"Ex: Silva & Cia Ltda",value:empresa,set:setEmpresa,type:"text"},{label:"Seu e-mail *",placeholder:"seuemail@empresa.com",value:email,set:setEmail,type:"email"}].map(({label,placeholder,value,set,type})=>(<div key={label} style={S.formGroup}><label style={S.label}>{label}</label><input style={S.input} type={type} placeholder={placeholder} value={value} onChange={e=>set(e.target.value)}/></div>))}{error&&<p style={{color:"#EF4444",fontSize:13,marginBottom:12}}>{error}</p>}<button style={{...S.btnPrimary,opacity:email?1:0.4,cursor:email?"pointer":"not-allowed"}} disabled={!email} onClick={generate}>Gerar e Enviar Relatório →</button></div></div>);
+  if(step==="loading")return(<div style={S.page}><div style={S.card}><div style={S.spinner}/><h2 style={{...S.sectionTitle,marginTop:20}}>Analisando seu diagnóstico...</h2><p style={{color:"#6B7280",fontSize:14,textAlign:"center"}}>Preparando seu caminho para a clareza financeira 📊</p></div></div>);
+  if(step==="report")return(<div style={S.page}><div style={{...S.card,maxWidth:680}}><div style={{...S.scoreHeader,background:cls.bg,borderColor:cls.color}}><div style={{fontSize:13,color:cls.color,fontWeight:700,textTransform:"uppercase",letterSpacing:1}}>{cls.emoji} {cls.label}</div><div style={{fontSize:60,fontWeight:900,color:cls.color,lineHeight:1}}>{score}</div><div style={{fontSize:13,color:"#6B7280"}}>de 100 pontos</div></div><div style={{...S.emailInfo,borderColor:emailSent?"#10B981":"#F59E0B",background:emailSent?"#064E3B22":"#78350F22"}}><span style={{fontSize:22}}>{emailSent?"✅":"⚠️"}</span><div><div style={{fontSize:13,color:"#D1D5DB",fontWeight:600}}>{emailSent?"Relatório enviado com sucesso!":"Configure o EmailJS para envio automático"}</div><div style={{fontSize:12,color:"#6B7280"}}>{emailSent?`Enviado para: ${email}`:"Use o botão abaixo para enviar manualmente"}</div></div></div><div style={S.pillarBreakdown}>{PILLARS.map(p=>{const pts=pScore(p.id);return(<div key={p.id} style={S.pillarBar}><div style={S.pillarBarHeader}><span style={{fontSize:13,color:"#D1D5DB"}}>{p.icon} {p.title}</span><span style={{fontSize:13,fontWeight:700,color:p.color}}>{pts}/25</span></div><div style={S.barTrack}><div style={{...S.barFill,width:`${(pts/25)*100}%`,background:p.color}}/></div></div>);})}</div><div style={S.reportBox}><h3 style={{color:"#F3F4F6",marginBottom:12,fontSize:16}}>📄 Seu Relatório Personalizado</h3><div style={S.reportText}>{report.split("\n").map((line,i)=><p key={i} style={{margin:"4px 0",lineHeight:1.7}}>{line}</p>)}</div></div>{(()=>{const cta=score<=25?{label:"Próximo passo recomendado",title:"iuli — ERP Financeiro",desc:"Estruture a base da sua empresa com conciliação automática, DRE, DFC e dashboards integrados.",url:"https://iuli.com.br",btn:"Conhecer o iuli →",color:"#F59E0B"}:score<=50?{label:"Próximo passo recomendado",title:"iuli + Financeiro Operacional",desc:"Combine a ferramenta certa com suporte humano especializado para reorganizar tudo rapidamente.",url:"https://lucrosreais.com.br",btn:"Conhecer a Lucros Reais →",color:"#F97316"}:score<=75?{label:"Próximo passo recomendado",title:"Controladoria Estratégica",desc:"Você tem estrutura — falta integração e visão estratégica. A Lucros Reais é o seu próximo nível.",url:"https://lucrosreais.com.br",btn:"Conhecer a Lucros Reais →",color:"#EAB308"}:score<=90?{label:"Próximo passo recomendado",title:"Conselho Empresarial",desc:"Reuniões mensais para orientar decisões estratégicas com base nos seus números.",url:"https://lucrosreais.com.br",btn:"Conhecer o Conselho →",color:"#3B82F6"}:{label:"Próximo passo recomendado",title:"Formação Engenheiros do Lucro",desc:"Replique essa cultura financeira para toda a sua equipe.",url:"https://drakelenabreu.com.br",btn:"Conhecer a Formação →",color:"#10B981"};return(<div style={{width:"100%",border:`1px solid ${cta.color}44`,borderRadius:14,padding:"20px",marginBottom:16,background:`${cta.color}11`}}><div style={{fontSize:11,color:cta.color,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",marginBottom:8,fontFamily:"monospace"}}>{cta.label}</div><div style={{fontSize:17,fontWeight:800,color:"#F3F4F6",marginBottom:6}}>{cta.title}</div><div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.6,marginBottom:14}}>{cta.desc}</div><button style={{...S.btnPrimary,background:`linear-gradient(135deg,${cta.color},${cta.color}bb)`,width:"auto",padding:"11px 22px",fontSize:14}} onClick={()=>window.open(cta.url,"_blank")}>{cta.btn}</button></div>);})()}<div style={S.navRow}><button style={S.btnSecondary} onClick={restart}>Refazer Diagnóstico</button>{!emailSent&&(<button style={S.btnPrimary} onClick={()=>{const sub=encodeURIComponent("Seu Relatório ICF – Índice de Cegueira Financeira");const body=encodeURIComponent(`Pontuação: ${score}/100 — ${cls.label}\n\n${report}`);window.open(`mailto:${email}?subject=${sub}&body=${body}`,"_blank");}}>📧 Enviar por E-mail</button>)}</div></div></div>);
 }
-
-const S = {
-  page:         {minHeight:"100vh",background:"#0F172A",display:"flex",alignItems:"center",justifyContent:"center",padding:"24px 16px"},
-  card:         {background:"#1E293B",borderRadius:20,padding:"36px 32px",maxWidth:520,width:"100%",boxShadow:"0 25px 60px rgba(0,0,0,0.5)",display:"flex",flexDirection:"column",alignItems:"center"},
-  badge:        {background:"#F59E0B22",color:"#F59E0B",fontSize:11,fontWeight:700,letterSpacing:2,padding:"4px 14px",borderRadius:20,marginBottom:16,border:"1px solid #F59E0B44",fontFamily:"monospace"},
-  icfBig:       {fontSize:72,fontWeight:900,color:"#F59E0B",lineHeight:1,marginBottom:8,letterSpacing:-2},
-  heroTitle:    {fontSize:28,fontWeight:700,color:"#F3F4F6",textAlign:"center",margin:"0 0 12px",lineHeight:1.2},
-  heroSub:      {color:"#9CA3AF",fontSize:14,textAlign:"center",lineHeight:1.7,marginBottom:24},
-  pillarsRow:   {display:"flex",gap:8,flexWrap:"wrap",justifyContent:"center",marginBottom:28},
-  pillarBadge:  {display:"flex",flexDirection:"column",alignItems:"center",gap:4,padding:"8px 12px",border:"1px solid",borderRadius:10,fontSize:18,background:"#0F172A"},
-  btnPrimary:   {background:"linear-gradient(135deg,#F59E0B,#D97706)",color:"#1E293B",border:"none",borderRadius:12,padding:"14px 28px",fontSize:15,fontWeight:700,cursor:"pointer",width:"100%",letterSpacing:0.5},
-  btnSecondary: {background:"transparent",color:"#9CA3AF",border:"1px solid #374151",borderRadius:12,padding:"13px 20px",fontSize:14,fontWeight:600,cursor:"pointer"},
-  progressBar:  {display:"flex",gap:6,width:"100%",marginBottom:24},
-  pSeg:         {flex:1,height:4,borderRadius:4},
-  pillarTitle:  {fontSize:20,fontWeight:800,margin:0},
-  pillarSub:    {color:"#6B7280",fontSize:13,marginBottom:20,textAlign:"center"},
-  criteriaList: {width:"100%",display:"flex",flexDirection:"column",gap:12,marginBottom:16},
-  criterionRow: {background:"#0F172A",borderRadius:12,padding:"12px 14px",display:"flex",flexDirection:"column",gap:10},
-  criterionText:{color:"#D1D5DB",fontSize:14,margin:0,lineHeight:1.5},
-  toggleGroup:  {display:"flex",gap:8},
-  toggleBtn:    {flex:1,padding:"8px",border:"1px solid #374151",borderRadius:8,background:"transparent",color:"#9CA3AF",fontSize:13,fontWeight:600,cursor:"pointer"},
-  yes:          {background:"#10B981",color:"#fff",borderColor:"#10B981"},
-  no:           {background:"#EF4444",color:"#fff",borderColor:"#EF4444"},
-  pillarResult: {display:"flex",flexDirection:"column",alignItems:"center",gap:2,padding:"12px",border:"1px solid",borderRadius:12,width:"100%",marginBottom:16,background:"#0F172A"},
-  navRow:       {display:"flex",gap:10,width:"100%",marginTop:8},
-  formGroup:    {width:"100%",marginBottom:16},
-  label:        {display:"block",color:"#9CA3AF",fontSize:13,marginBottom:6,fontWeight:600},
-  input:        {width:"100%",background:"#0F172A",border:"1px solid #374151",borderRadius:10,padding:"12px 14px",color:"#F3F4F6",fontSize:14,outline:"none"},
-  spinner:      {width:48,height:48,border:"4px solid #374151",borderTopColor:"#F59E0B",borderRadius:"50%",animation:"spin 0.8s linear infinite"},
-  sectionTitle: {fontSize:22,fontWeight:800,color:"#F3F4F6",margin:"0 0 8px",textAlign:"center"},
-  scoreHeader:  {width:"100%",borderRadius:16,border:"2px solid",padding:"24px",textAlign:"center",marginBottom:16,display:"flex",flexDirection:"column",alignItems:"center",gap:4},
-  emailInfo:    {display:"flex",alignItems:"center",gap:10,border:"1px solid",borderRadius:10,padding:"12px 16px",width:"100%",marginBottom:16,boxSizing:"border-box"},
-  pillarBreakdown:{width:"100%",display:"flex",flexDirection:"column",gap:12,marginBottom:20},
-  pillarBar:    {width:"100%"},
-  pillarBarHeader:{display:"flex",justifyContent:"space-between",marginBottom:6},
-  barTrack:     {width:"100%",height:8,background:"#0F172A",borderRadius:4,overflow:"hidden"},
-  barFill:      {height:"100%",borderRadius:4},
-  reportBox:    {width:"100%",background:"#0F172A",borderRadius:14,padding:"20px",marginBottom:16},
-  reportText:   {color:"#9CA3AF",fontSize:13.5,lineHeight:1.8},
-};
-
+const S={page:{minHeight:"100vh",background:"#0F172A",display:"flex",alignItems:"center",justifyContent:"center",padding:"24px 16px"},card:{background:"#1E293B",borderRadius:20,padding:"36px 32px",maxWidth:520,width:"100%",boxShadow:"0 25px 60px rgba(0,0,0,0.5)",display:"flex",flexDirection:"column",alignItems:"center"},badge:{background:"#F59E0B22",color:"#F59E0B",fontSize:11,fontWeight:700,letterSpacing:2,padding:"4px 14px",borderRadius:20,marginBottom:16,border:"1px solid #F59E0B44",fontFamily:"monospace"},icfBig:{fontSize:72,fontWeight:900,color:"#F59E0B",lineHeight:1,marginBottom:8,letterSpacing:-2},heroTitle:{fontSize:28,fontWeight:700,color:"#F3F4F6",textAlign:"center",margin:"0 0 12px",lineHeight:1.2},heroSub:{color:"#9CA3AF",fontSize:14,textAlign:"center",lineHeight:1.7,marginBottom:24},pillarsRow:{display:"flex",gap:8,flexWrap:"wrap",justifyContent:"center",marginBottom:28},pillarBadge:{display:"flex",flexDirection:"column",alignItems:"center",gap:4,padding:"8px 12px",border:"1px solid",borderRadius:10,fontSize:18,background:"#0F172A"},btnPrimary:{background:"linear-gradient(135deg,#F59E0B,#D97706)",color:"#1E293B",border:"none",borderRadius:12,padding:"14px 28px",fontSize:15,fontWeight:700,cursor:"pointer",width:"100%",letterSpacing:0.5},btnSecondary:{background:"transparent",color:"#9CA3AF",border:"1px solid #374151",borderRadius:12,padding:"13px 20px",fontSize:14,fontWeight:600,cursor:"pointer"},progressBar:{display:"flex",gap:6,width:"100%",marginBottom:24},pSeg:{flex:1,height:4,borderRadius:4},pillarTitle:{fontSize:20,fontWeight:800,margin:0},pillarSub:{color:"#6B7280",fontSize:13,marginBottom:20,textAlign:"center"},criteriaList:{width:"100%",display:"flex",flexDirection:"column",gap:12,marginBottom:16},criterionRow:{background:"#0F172A",borderRadius:12,padding:"12px 14px",display:"flex",flexDirection:"column",gap:10},criterionText:{color:"#D1D5DB",fontSize:14,margin:0,lineHeight:1.5},toggleGroup:{display:"flex",gap:8},toggleBtn:{flex:1,padding:"8px",border:"1px solid #374151",borderRadius:8,background:"transparent",color:"#9CA3AF",fontSize:13,fontWeight:600,cursor:"pointer"},yes:{background:"#10B981",color:"#fff",borderColor:"#10B981"},no:{background:"#EF4444",color:"#fff",borderColor:"#EF4444"},pillarResult:{display:"flex",flexDirection:"column",alignItems:"center",gap:2,padding:"12px",border:"1px solid",borderRadius:12,width:"100%",marginBottom:16,background:"#0F172A"},navRow:{display:"flex",gap:10,width:"100%",marginTop:8},formGroup:{width:"100%",marginBottom:16},label:{display:"block",color:"#9CA3AF",fontSize:13,marginBottom:6,fontWeight:600},input:{width:"100%",background:"#0F172A",border:"1px solid #374151",borderRadius:10,padding:"12px 14px",color:"#F3F4F6",fontSize:14,outline:"none"},spinner:{width:48,height:48,border:"4px solid #374151",borderTopColor:"#F59E0B",borderRadius:"50%",animation:"spin 0.8s linear infinite"},sectionTitle:{fontSize:22,fontWeight:800,color:"#F3F4F6",margin:"0 0 8px",textAlign:"center"},scoreHeader:{width:"100%",borderRadius:16,border:"2px solid",padding:"24px",textAlign:"center",marginBottom:16,display:"flex",flexDirection:"column",alignItems:"center",gap:4},emailInfo:{display:"flex",alignItems:"center",gap:10,border:"1px solid",borderRadius:10,padding:"12px 16px",width:"100%",marginBottom:16,boxSizing:"border-box"},pillarBreakdown:{width:"100%",display:"flex",flexDirection:"column",gap:12,marginBottom:20},pillarBar:{width:"100%"},pillarBarHeader:{display:"flex",justifyContent:"space-between",marginBottom:6},barTrack:{width:"100%",height:8,background:"#0F172A",borderRadius:4,overflow:"hidden"},barFill:{height:"100%",borderRadius:4},reportBox:{width:"100%",background:"#0F172A",borderRadius:14,padding:"20px",marginBottom:16},reportText:{color:"#9CA3AF",fontSize:13.5,lineHeight:1.8}};
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 </script>
 </body>
